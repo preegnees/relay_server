@@ -9,7 +9,7 @@ import (
 )
 
 type config struct {
-	Port int8
+	Port int
 }
 
 func Get() (*config, error) {
@@ -17,12 +17,12 @@ func Get() (*config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("$Невозможно прочитать файл конфигурации. err: %v", err)
 	}
-	port, err := strconv.ParseInt(os.Getenv("port"), 10, 8)
+	port, err := strconv.Atoi(os.Getenv("serverPort"))
 	if err != nil {
 		return nil, fmt.Errorf("$Невалидный порт. err: %v", err)
 	}
 	cnf := config{
-		Port: int8(port),
+		Port: port,
 	}
 	return &cnf, nil
 }

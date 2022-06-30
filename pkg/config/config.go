@@ -19,6 +19,11 @@ const (
 	ErrorInvalidServerPort = "$Невалидный порт"
 )
 
+const (
+	DbgConfigHasBeenRead = "Конфиг был прочтен"
+	DbgAConfigRequestHasBeenMade = "Был сделан запрос конфига"
+)
+
 type config struct {
 	Port int
 }
@@ -29,11 +34,19 @@ var (
 	once sync.Once
 )
 
-func Get(log logger.ILogger) (*config, error) {
-	once.Do(func() {
-		err := godotenv.Load(EnvFileName)
+func LoadEnv() error {
+	err := godotenv.Load(EnvFileName)
 		if err != nil {
-			e = fmt.Errorf("%s. err: %v", ErrorUnableToReadConfigurationFile, err)
+			return fmt.Errorf("%s. err: %v", ErrorUnableToReadConfigurationFile, err)
+	}
+	return nil
+}
+
+func Get(log logger.ILogger, loadEnv func() error) (*config, error) {
+	once.Do(func() {
+		err := loadEnv()
+		if err != nil {
+			e = err
 		}
 		port, err := strconv.Atoi(os.Getenv(ConfServerPort))
 		if err != nil {
@@ -42,8 +55,8 @@ func Get(log logger.ILogger) (*config, error) {
 		cnf = config{
 			Port: port,
 		}
-		log.Debug("Конфиг был прочтен")
+		log.Debug(DbgConfigHasBeenRead)
 	})
-	log.Debug("Был сделан запрос конфига")
+	log.Debug(DbgAConfigRequestHasBeenMade)
 	return &cnf, e
 }

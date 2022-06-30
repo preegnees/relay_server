@@ -8,14 +8,20 @@ import (
 	"relay_server/pkg/logger"
 )
 
+const (
+	ErrorMainErr = "$Критическая ошибка"
+	ErrorReadConfig = "$Ошибка при чтении конфига"
+	ErrorInvalidConfig = "$Невалидный конфиг"
+)
+
 // точка входа
 func run(log logger.ILogger) error {
-	cnf, err := config.Get(log)
+	cnf, err := config.Get(log, config.LoadEnv)
 	if err != nil {
-		return fmt.Errorf("$Ошибка при чтении конфига. Err: %v", err)
+		return fmt.Errorf("%s. Err: %v", ErrorReadConfig, err)
 	}
 	if cnf == nil {
-		return fmt.Errorf("$Невалидный конфиг. Cnf: %v", cnf)
+		return fmt.Errorf("%s. Cnf: %v", ErrorInvalidConfig, cnf)
 	}
 	log.Debug(fmt.Sprintf("Cnf: %v", cnf))
 	return nil
@@ -49,6 +55,6 @@ func main() {
 	log := initLogger(flgs)
 	log.Debug("Старт")
 	if err := run(log); err != nil {
-		log.Error(fmt.Sprintf("$Критическая ошибка. Err: %v", err))
+		log.Error(fmt.Sprintf("%s. Err: %v", ErrorMainErr, err))
 	}
 }

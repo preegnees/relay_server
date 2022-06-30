@@ -1,8 +1,8 @@
 package logger
 
 import (
-	fmt "fmt"
-	log "log"
+	"fmt"
+	"log"
 )
 
 type ILogger interface {

@@ -5,7 +5,6 @@ import (
 	"flag"
 
 	"relay_server/pkg/config"
-
 	"relay_server/pkg/logger"
 )
 

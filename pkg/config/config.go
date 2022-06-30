@@ -1,13 +1,13 @@
 package config
 
 import (
-	fmt "fmt"
-	os "os"
-	strconv "strconv"
+	"fmt"
+	"os"
+	"strconv"
 
-	godotenv "github.com/joho/godotenv" 
+	"github.com/joho/godotenv"
 )
- 
+
 type config struct {
 	Port int8
 }

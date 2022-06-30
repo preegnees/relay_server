@@ -10,7 +10,7 @@ import (
 
 // точка входа
 func run(log logger.ILogger) error {
-	cnf, err := config.Get()
+	cnf, err := config.Get(log)
 	if err != nil {
 		return fmt.Errorf("$Ошибка при чтении конфига. Err: %v", err)
 	}

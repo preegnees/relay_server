@@ -47,10 +47,14 @@ func Get(log logger.ILogger, loadEnv func() error) (*config, error) {
 		err := loadEnv()
 		if err != nil {
 			e = err
+			cnf = config{}
+			return
 		}
 		port, err := strconv.Atoi(os.Getenv(ConfServerPort))
 		if err != nil {
 			e = fmt.Errorf("%s. err: %v", ErrorInvalidServerPort, err)
+			cnf = config{}
+			return
 		}
 		cnf = config{
 			Port: port,

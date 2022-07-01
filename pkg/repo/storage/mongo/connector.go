@@ -6,7 +6,6 @@ import (
 	"relay_server/pkg/logger"
 	"sync"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -24,7 +23,7 @@ type CnfMongo struct {
 
 var (
 	once sync.Once
-	err  error
+	err  error = nil
 	db   *mongo.Database
 )
 
@@ -33,10 +32,10 @@ const (
 	ErrorConnectMongo   = "$Ошибка подключения к mongodb"
 	ErrorPingMongo = "$Ошибка при пинге mongodb"
 	
-	ErrorGetDatabases = "$Ошибка получения списка баз данных"
+	ErrorGetDatabase = "$Ошибка получения базы данных"
 )
 
-func NewClient(cnf CnfMongo) (*mongo.Database, error) {
+func NewClient(cnf *CnfMongo) (*mongo.Database, error) {
 	once.Do(func() {
 		var URI string
 		if cnf.Username == "" && cnf.Password == "" {
@@ -70,20 +69,20 @@ func NewClient(cnf CnfMongo) (*mongo.Database, error) {
 
 		defer client.Disconnect(cnf.Ctx)
 		defer cnf.Log.Debug(fmt.Sprintf("Успешное отключение"))
-
+		
 		err = client.Ping(cnf.Ctx, readpref.Primary())
 		if err != nil {
 			err = fmt.Errorf("%s. Err: %v", ErrorPingMongo, err)
 			db = nil
 			return
 		}
-		databases, err := client.ListDatabaseNames(cnf.Ctx, bson.M{})
+		database := client.Database(cnf.DB)
 		if err != nil {
-			err = fmt.Errorf("%s. Err: %v", ErrorGetDatabases, err)
+			err = fmt.Errorf("%s. Err: %v", ErrorGetDatabase, err)
 			db = nil
 			return
 		}
-		fmt.Println(databases)
+		db = database
 	})
 	return db, err
 }

@@ -54,9 +54,10 @@ func Test_Get_OneRead(t *testing.T) {
 	log := &fakeLog{}
 	_, _ = Get(log, fakeLoadEnv1)
 	_, _ = Get(log, fakeLoadEnv1)
-	_, _ = Get(log, fakeLoadEnv1)
+	cnf, _ := Get(log, fakeLoadEnv1)
 	count := st(false)
 	assert.Equal(t, 1, count)
+	assert.True(t, cnf.Port == 9999)
 }
 
 //%%% Должны возникать ошибки, если параметры кофига будут невалидны

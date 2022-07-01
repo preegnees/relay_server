@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"relay_server/pkg/logger"
-	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,68 +20,60 @@ type CnfMongo struct {
 	DB       string
 }
 
-var (
-	once sync.Once
-	err  error = nil
-	db   *mongo.Database
-)
-
 const (
 	ErrorNewClientMongo = "$Ошибка создания клиента базы данных mongodb"
 	ErrorConnectMongo   = "$Ошибка подключения к mongodb"
-	ErrorPingMongo = "$Ошибка при пинге mongodb"
-	
+	ErrorPingMongo      = "$Ошибка при пинге mongodb"
+
 	ErrorGetDatabase = "$Ошибка получения базы данных"
 )
 
-func NewClient(cnf *CnfMongo) (*mongo.Database, error) {
-	once.Do(func() {
-		var URI string
-		if cnf.Username == "" && cnf.Password == "" {
-			URI = fmt.Sprintf("mongodb://%s:%s", cnf.Host, cnf.Port)
-		} else {
-			URI = fmt.Sprintf("mongodb://%s:%s@%s:%s", cnf.Username, cnf.Password, cnf.Host, cnf.Port)
-		}
-		cnf.Log.Debug(fmt.Sprintf("URL mongo: %s", URI))
+func NewClient(cnf *CnfMongo) (*mongo.Client, error) {
+	var URI string
+	var credential options.Credential
+	var client *mongo.Client 
+	var err error
 
-		credential := options.Credential{
+	if cnf.Username == "" && cnf.Password == "" {
+		URI = fmt.Sprintf("mongodb://%s:%s", cnf.Host, cnf.Port)
+		client, err = mongo.NewClient(options.Client().ApplyURI(URI))
+	} else {
+		URI = fmt.Sprintf("mongodb://%s:%s@%s:%s", cnf.Username, cnf.Password, cnf.Host, cnf.Port)
+		credential = options.Credential{
 			Username: cnf.Username,
 			Password: cnf.Password,
 		}
-		client, err := mongo.NewClient(options.Client().ApplyURI(URI).SetAuth(credential))
-		if err != nil {
-			err = fmt.Errorf("%s. Err: %v", ErrorNewClientMongo, err)
-			db = nil
-			return
-		}
+		client, err = mongo.NewClient(options.Client().ApplyURI(URI).SetAuth(credential))
+	}
+	
+	cnf.Log.Debug(fmt.Sprintf("URL mongo: %s", URI))
 
-		cnf.Log.Debug(fmt.Sprintf("Успешное создание клиента"))
+	if err != nil {
+		return nil, fmt.Errorf("%s. Err: %v", ErrorNewClientMongo, err)
+	}
 
-		err = client.Connect(cnf.Ctx)
-		if err != nil {
-			err = fmt.Errorf("%s. Err: %v", ErrorConnectMongo, err)
-			db = nil
-			return
-		}
+	cnf.Log.Debug(fmt.Sprintf("Успешное создание клиента"))
 
-		cnf.Log.Debug(fmt.Sprintf("Успешное подключение"))
+	err = client.Connect(cnf.Ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%s. Err: %v", ErrorConnectMongo, err)
+	}
 
-		defer client.Disconnect(cnf.Ctx)
-		defer cnf.Log.Debug(fmt.Sprintf("Успешное отключение"))
-		
-		err = client.Ping(cnf.Ctx, readpref.Primary())
-		if err != nil {
-			err = fmt.Errorf("%s. Err: %v", ErrorPingMongo, err)
-			db = nil
-			return
-		}
-		database := client.Database(cnf.DB)
-		if err != nil {
-			err = fmt.Errorf("%s. Err: %v", ErrorGetDatabase, err)
-			db = nil
-			return
-		}
-		db = database
-	})
-	return db, err
+	cnf.Log.Debug(fmt.Sprintf("Успешное подключение"))
+
+	// defer client.Disconnect(cnf.Ctx)
+	// defer cnf.Log.Debug(fmt.Sprintf("Успешное отключение"))
+
+	err = client.Ping(cnf.Ctx, readpref.Primary())
+	if err != nil {
+		return nil, fmt.Errorf("%s. Err: %v", ErrorPingMongo, err)
+	}
+
+	cnf.Log.Debug(fmt.Sprintf("Успешный пинг"))
+
+	// database := client.Database(cnf.DB)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("%s. Err: %v", ErrorGetDatabase, err)
+	// }
+	return client, nil
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"fmt"
 
 	"github.com/stretchr/testify/assert"
 
@@ -28,15 +29,16 @@ var st func(bool) int = state()
 // фейковая структура логгера, где мы перехватываем сообщение при дебаге
 type fakeLog struct{}
 
-func (t *fakeLog) Info(s string)  {}
-func (t *fakeLog) Error(s string) {}
-func (t *fakeLog) Debug(s string) {
+func (t *fakeLog) Info(s interface{})  {}
+func (t *fakeLog) Error(s interface{}) {}
+func (t *fakeLog) Debug(s interface{}) {
 	if s == DbgConfigHasBeenRead {
 		st(true)
 	}
 	if s == DbgAConfigRequestHasBeenMade {
 		st(false)
 	}
+	fmt.Println(s)
 }
 
 // Тут проверяется соответсвие фейковой структуры на
@@ -45,6 +47,9 @@ var lg logger.ILogger = (*fakeLog)(nil)
 // фейковая загрузка данных в перменные окружения из файла
 func fakeLoadEnv1() error {
 	os.Setenv(ConfServerPort, "9999")
+	os.Setenv(ConfMongoPort, "8888")
+	os.Setenv(ConfMongoHost, "localhost")
+	os.Setenv(ConfMongoDBName, "radmir")
 	return nil
 }
 
@@ -57,7 +62,7 @@ func Test_Get_OneRead(t *testing.T) {
 	cnf, _ := Get(log, fakeLoadEnv1)
 	count := st(false)
 	assert.Equal(t, 1, count)
-	assert.True(t, cnf.Port == 9999)
+	assert.True(t, cnf.serverConf.Port == 9999)
 }
 
 //%%% Должны возникать ошибки, если параметры кофига будут невалидны

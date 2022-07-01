@@ -28,22 +28,22 @@ func run(log logger.ILogger) error {
 }
 
 // структура для описания флагов
-type Flags struct {
+type flags struct {
 	Debug bool
 }
 
 // парсер флагов
-func parseFlags() *Flags {
+func parseFlags() *flags {
 	var dbg = flag.Bool("d", false, "is debug???")
 	flag.Parse()
-	flgs := &Flags{
+	flgs := &flags{
 		Debug: *dbg,
 	}
 	return flgs
 }
 
 // инициализация логгер, атребут дебаг
-func initLogger(flgs *Flags) logger.ILogger {
+func initLogger(flgs *flags) logger.ILogger {
 	var log logger.ILogger = &logger.MyLogger{
 		Dbg: flgs.Debug,
 	}

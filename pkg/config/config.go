@@ -15,46 +15,23 @@ const (
 	EnvFileName                        = "config.env"
 	ErrorUnableToReadConfigurationFile = "$Невозможно прочитать файл конфигурации"
 
-	ConfServerPort         = "server.port"
-	ErrorInvalidServerPort = "$Невалидный порт сервера"
-	ConfMongoPort         = "mongo.port"
-	ErrorInvalidMonogPort = "$Невалидный порт моногодб"
-	ConfMongoHost         = "mongo.host"
-	ErrorInvalidMongoHost = "$Невалидный хост моногодб"
+	ConfServerPort            = "server.port"
+	ErrorInvalidServerPort    = "$Невалидный порт сервера"
+	ConfMongoPort             = "mongo.port"
+	ErrorInvalidMonogPort     = "$Невалидный порт моногодб"
+	ConfMongoHost             = "mongo.host"
+	ErrorInvalidMongoHost     = "$Невалидный хост моногодб"
 	ConfMongoUsername         = "mongo.username"
 	ErrorInvalidMongoUsername = "$Невалидный username моногодб"
 	ConfMongoPassword         = "mongo.password"
 	ErrorInvalidMongoPassword = "$Невалидный password моногодб"
-	ConfMongoDBName         = "mongo.db"
-	ErrorInvalidMongoDBName = "$Невалидное имя базы данных"
+	ConfMongoDBName           = "mongo.db"
+	ErrorInvalidMongoDBName   = "$Невалидное имя базы данных"
 )
 
 const (
 	DbgConfigHasBeenRead         = "Конфиг был прочтен"
 	DbgAConfigRequestHasBeenMade = "Был сделан запрос конфига"
-)
-
-type serverConf struct {
-	Port int
-}
-
-type mongoConf struct {
-	Port     int
-	Host     string
-	Username string
-	Password string
-	DB       string
-}
-
-type config struct {
-	serverConf
-	mongoConf
-}
-
-var (
-	cnf  config
-	e    error
-	once sync.Once
 )
 
 func LoadEnv() error {
@@ -65,33 +42,34 @@ func LoadEnv() error {
 	return nil
 }
 
-func Get(log logger.ILogger, loadEnv func() error) (*config, error) {
+var (
+	e    error
+	once sync.Once
+)
+
+func Get(log logger.ILogger, loadEnv func() error) error {
 	once.Do(func() {
 		err := loadEnv()
 		if err != nil {
 			e = err
-			cnf = config{}
 			return
 		}
 		// server Port
 		serverPort, err := strconv.Atoi(os.Getenv(ConfServerPort))
 		if err != nil {
 			e = fmt.Errorf("%s. err: %v", ErrorInvalidServerPort, err)
-			cnf = config{}
 			return
 		}
 		// mongo Port
 		mongoPort, err := strconv.Atoi(os.Getenv(ConfMongoPort))
 		if err != nil {
 			e = fmt.Errorf("%s. err: %v", ErrorInvalidMonogPort, err)
-			cnf = config{}
 			return
 		}
 		// mongo Host
 		mongoHost := os.Getenv(ConfMongoHost)
 		if mongoHost == "" {
 			e = fmt.Errorf("%s. err: %v", ErrorInvalidMongoHost, err)
-			cnf = config{}
 			return
 		}
 		// mongo Username
@@ -99,28 +77,24 @@ func Get(log logger.ILogger, loadEnv func() error) (*config, error) {
 		// mongo Password
 		mongoPassword := os.Getenv(ConfMongoPassword)
 		// mongo db
-		db := os.Getenv(ConfMongoDBName)
-		if db == "" {
+		mongoDBName := os.Getenv(ConfMongoDBName)
+		if mongoDBName == "" {
 			e = fmt.Errorf("%s. err: %v", ErrorInvalidMongoDBName, err)
-			cnf = config{}
 			return
 		}
-		cnf = config{
-			serverConf: serverConf{
-				Port: serverPort,
-			},
-			mongoConf: mongoConf{
-				Port: mongoPort,
-				Host: mongoHost,
-				Username: mongoUsername,
-				Password: mongoPassword,
-				DB: db,
-			},
-		}
-		log.Debug(cnf)
+
+		log.Debug(fmt.Sprintf(
+			"%s:%v\n%s:%v\n%s:%v\n%s:%v\n%s:%v\n%s:%v\n",
+			ConfServerPort, serverPort,
+			ConfMongoPort, mongoPort,
+			ConfMongoHost, mongoHost,
+			ConfMongoUsername, mongoUsername,
+			ConfMongoPassword, mongoPassword,
+			ConfMongoDBName, mongoDBName,
+		))
 
 		log.Debug(DbgConfigHasBeenRead)
 	})
 	log.Debug(DbgAConfigRequestHasBeenMade)
-	return &cnf, e
+	return e
 }

@@ -3,11 +3,16 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"relay_server/pkg/logger"
 	"testing"
 	"time"
+	"os"
+
+	cnf "relay_server/pkg/config"
 
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
+	// "go.mongodb.org/mongo-driver/bson"
+
 )
 
 type fakeLog struct{}
@@ -18,27 +23,24 @@ func (t *fakeLog) Debug(s interface{}) {
 	fmt.Println(s)
 }
 
+var fakeLog_test logger.ILogger= (*fakeLog)(nil)
+
 func Test_NewClient_Connection(t *testing.T) {
+	os.Setenv(cnf.ConfMongoPort, "27017")
+	os.Setenv(cnf.ConfMongoHost, "localhost")
+	os.Setenv(cnf.ConfMongoDBName, "radmir")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	var cnf *CnfMongo = &CnfMongo{
-		Log:      &fakeLog{},
-		Ctx:      ctx,
-		Host:     "localhost",
-		Port:     "27017",
-		Username: "",
-		Password: "",
-		DB:       "radmir",
-	}
-
-	client, err := NewClient(cnf)
-	assert.True(t, err == nil)
-	assert.True(t, client != nil)
-
-	database, err := client.ListDatabaseNames(cnf.Ctx, bson.M{})
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(database)
 	defer cancel()
-	defer client.Disconnect(cnf.Ctx)
+	ctxDisconn, disconn := context.WithCancel(context.Background())
+	
+	database, err := New(ctx, ctxDisconn, &fakeLog{})
+	assert.True(t, err == nil)
+	assert.True(t, database != nil)
+	disconn()
+
+	// collections, err := database.ListCollectionNames(ctx, bson.M{})
+	// assert.True(t, err == nil)
+	// fmt.Println(collections)
+	
 }

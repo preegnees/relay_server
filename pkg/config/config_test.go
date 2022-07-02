@@ -57,12 +57,12 @@ func fakeLoadEnv1() error {
 // Должно: один раз прочититать конфиг, потом отдавать структуру
 func Test_Get_OneRead(t *testing.T) {
 	log := &fakeLog{}
-	_, _ = Get(log, fakeLoadEnv1)
-	_, _ = Get(log, fakeLoadEnv1)
-	cnf, _ := Get(log, fakeLoadEnv1)
+	_ = Get(log, fakeLoadEnv1)
+	_ = Get(log, fakeLoadEnv1)
+	_ = Get(log, fakeLoadEnv1)
 	count := st(false)
 	assert.Equal(t, 1, count)
-	assert.True(t, cnf.serverConf.Port == 9999)
+	assert.True(t, os.Getenv("server.port") == "9999")
 }
 
 //%%% Должны возникать ошибки, если параметры кофига будут невалидны
@@ -76,7 +76,7 @@ func fakeLoadEnv2() error {
 // Должна быть ошибка если мы закрузим в переменные среды не число
 func Test_Get_ErrorOnInvalidConfig(t *testing.T) {
 	log := &fakeLog{}
-	_, err := Get(log, fakeLoadEnv2)
+	err := Get(log, fakeLoadEnv2)
 	assert.True(t, err != nil)
 	assert.True(t, strings.Contains(err.Error(), ErrorInvalidServerPort))
 	assert.False(t, strings.Contains(err.Error(), "hello world"))

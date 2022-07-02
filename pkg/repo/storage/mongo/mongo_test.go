@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	"os"
 
-	repo "relay_server/pkg/repo/storage"
+	cnf "relay_server/pkg/config"
+	// repo "relay_server/pkg/repo/storage"
 
 	// "github.com/stretchr/testify/assert"
 	// "go.mongodb.org/mongo-driver/bson"
@@ -22,16 +24,11 @@ func (t *fakeLog1) Debug(s interface{}) {
 
 func Test_NewStorage_Create(t *testing.T) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	var cnf *CnfMongo = &CnfMongo{
-		Log:      &fakeLog{},
-		Ctx:      ctx,
-		Host:     "localhost",
-		Port:     "27017",
-		Username: "",
-		Password: "",
-		DB:       "radmir",
-	}
+	ctxDisconn, _:= context.WithCancel(context.Background())
 
-	var storage repo.IInfoHost = NewStorage(cnf)
-	storage.
+	os.Setenv(cnf.ConfMongoPort, "27017")
+	os.Setenv(cnf.ConfMongoHost, "localhost")
+	os.Setenv(cnf.ConfMongoDBName, "radmir")
+
+	_, _ = New(ctx, ctxDisconn, &fakeLog1{})
 }

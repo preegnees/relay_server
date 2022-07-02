@@ -41,14 +41,14 @@ func (m *mongoDB) SaveInfoHost(ctx context.Context, h *repo.Host) error {
 	return nil
 }
 
-func NewStorage() *mongoDB {
+func NewStorage(ctx context.Context, ctxDisconn context.Context, log logger.ILogger) *mongoDB {
 	once.Do(func(){
-		cli, err := NewClient(cnf)
+		database, err := New(ctx, ctxDisconn, log)
 		if err != nil {
 			e = fmt.Errorf("%s. Err: %v", ErrorNewClient, err)
 		}
 		db = &mongoDB{
-			Database: cli.Database(cnf.DB),
+			Database: database,
 		}
 	})
 	return db

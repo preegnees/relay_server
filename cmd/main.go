@@ -16,14 +16,10 @@ const (
 
 // точка входа
 func run(log logger.ILogger) error {
-	cnf, err := config.Get(log, config.LoadEnv)
+	err := config.Get(log, config.LoadEnv)
 	if err != nil {
 		return fmt.Errorf("%s. Err: %v", ErrorReadConfig, err)
 	}
-	if cnf == nil {
-		return fmt.Errorf("%s. Cnf: %v", ErrorInvalidConfig, cnf)
-	}
-	log.Debug(fmt.Sprintf("Cnf: %v", cnf))
 	return nil
 }
 

@@ -61,19 +61,12 @@ func NewClient(cnf *CnfMongo) (*mongo.Client, error) {
 
 	cnf.Log.Debug(fmt.Sprintf("Успешное подключение"))
 
-	// defer client.Disconnect(cnf.Ctx)
-	// defer cnf.Log.Debug(fmt.Sprintf("Успешное отключение"))
-
 	err = client.Ping(cnf.Ctx, readpref.Primary())
 	if err != nil {
 		return nil, fmt.Errorf("%s. Err: %v", ErrorPingMongo, err)
 	}
 
 	cnf.Log.Debug(fmt.Sprintf("Успешный пинг"))
-
-	// database := client.Database(cnf.DB)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("%s. Err: %v", ErrorGetDatabase, err)
-	// }
+	
 	return client, nil
 }

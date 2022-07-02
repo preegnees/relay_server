@@ -32,6 +32,7 @@ type CreateHostDTO struct {
 
 // Для сохранение и взымании информации о хосте
 type IInfoHost interface {
-	GetInfoHost(context.Context, logger.ILogger, string) (*Host, error)
+	GetIdInfoHost(context.Context, logger.ILogger, string) (*Host, error)
+	GetAllInfoHost(context.Context, logger.ILogger) (*[]Host, error)
 	SaveInfoHost(context.Context, *Host) error
 }

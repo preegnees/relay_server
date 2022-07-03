@@ -11,7 +11,7 @@ import (
 	cnf "relay_server/pkg/config"
 
 	"github.com/stretchr/testify/assert"
-	// "go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
 
 )
 
@@ -37,10 +37,10 @@ func Test_NewClient_Connection(t *testing.T) {
 	database, err := New(ctx, ctxDisconn, &fakeLog{})
 	assert.True(t, err == nil)
 	assert.True(t, database != nil)
-	disconn()
-
-	// collections, err := database.ListCollectionNames(ctx, bson.M{})
-	// assert.True(t, err == nil)
-	// fmt.Println(collections)
+	collections, err := database.ListCollectionNames(ctx, bson.M{})
+	assert.True(t, err == nil)
+	fmt.Println(collections)
 	
+	disconn()
+	time.Sleep(1*time.Second)
 }
